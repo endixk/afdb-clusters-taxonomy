@@ -7,10 +7,21 @@ fn extract_rel(dump: Vec<String>) -> Result<Vec<(usize, usize)>, Box<dyn Error>>
     for line in dump {
         let mut iter = line.split_whitespace();
         let id = iter.next().unwrap().parse::<usize>()?;
-        let parent = iter.next().unwrap().parse::<usize>()?;
-        rel.push((id, parent));
+        let par = iter.skip(1).next().unwrap().parse::<usize>()?;
+        rel.push((id, par));
     }
     Ok(rel)
+}
+
+fn dfs(adj: &Vec<Vec<usize>>, vis: &mut Vec<bool>, id: usize) -> Result<(), Box<dyn Error>> {
+    if vis[id] {
+        return Err("Cycle detected".into());
+    }
+    vis[id] = true;
+    for &ch in &adj[id] {
+        dfs(adj, vis, ch)?;
+    }
+    Ok(())
 }
 
 pub fn check(node_path: String) -> Result<(), Box<dyn Error>> {
@@ -25,9 +36,21 @@ pub fn check(node_path: String) -> Result<(), Box<dyn Error>> {
     }
 
     let rel = extract_rel(dump)?;
-    for (v, u) in rel {
-        println!("{} {}", v, u);
+    let imax = *rel.iter().map(|(id, _)| id).max().unwrap();
+    let mut adj = vec![Vec::new(); imax + 1];
+    for (id, par) in rel {
+        if id == par {
+            if id != 1 {
+                return Err(format!("Non-root node {} is its own parent", id).into());
+            } else {
+                continue;
+            }
+        }
+        adj[par].push(id);
     }
+
+    let mut vis = vec![false; imax + 1];
+    dfs(&adj, &mut vis, 1)?;
 
     Ok(())
 }
