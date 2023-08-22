@@ -28,7 +28,7 @@ impl Clusters {
 
 #[derive(Default)]
 struct Entry {
-    id: usize,
+    // id: usize,
     set: FxHashSet<usize>,
 }
 pub struct Entries {
@@ -51,7 +51,7 @@ impl Entries {
             return Err(format!("Entry {} already exists", id).into());
         }
         self.vec.push(Entry {
-            id: self.iter,
+            // id: self.iter,
             set: FxHashSet::default(),
         });
         self.map.insert(id, self.iter);
@@ -74,6 +74,21 @@ impl Entries {
         self.vec[idx].set.insert(clu);
         Ok(())
     }
+
+    pub fn clu_size(&self) -> usize {
+        self.clu.iter
+    }
+    pub fn clu_name(&self, id: usize) -> String {
+        self.clu.names[id].clone()
+    }
+    pub fn get_clu(&self, id: u32) -> Option<Vec<usize>> {
+        let idx = self.map.get(&id)?;
+        let mut ret = Vec::new();
+        for &clu in &self.vec[*idx].set {
+            ret.push(clu);
+        }
+        Some(ret)
+    }
 }
 
 use crate::taxonomy_tree;
@@ -89,6 +104,7 @@ fn extract(dump: Vec<String>) -> Result<Vec<(String, String, u32)>, Box<dyn Erro
     Ok(ret)
 }
 pub fn map(map_path: String) -> Result<Entries, Box<dyn Error>> {
+    println!("Mapping entries...");
     let dump = taxonomy_tree::dump(map_path)?;
     let rel = extract(dump)?;
 

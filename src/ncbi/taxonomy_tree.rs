@@ -113,10 +113,13 @@ impl Tree {
             return Err(format!("Node {} does not exist", id).into());
         };
         self.nodes[id].add_name(name.clone())?;
-        if let Some(x) = self.name_map.insert(name.to_lowercase(), id) {
-            // return Err(format!("Name {} is already assigned to node {}", name, x).into());
-        }
+        self.name_map.insert(name.to_lowercase(), id);
         Ok(())
+    }
+
+    pub fn get_children(&self, id: u32) -> Vec<u32> {
+        let id = *self.map.get(&id).unwrap();
+        self.nodes[id].children.iter().map(|&x| self.nodes[x].id).collect()
     }
 }
 
