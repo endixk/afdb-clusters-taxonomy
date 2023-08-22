@@ -58,6 +58,7 @@ pub struct Tree {
     map: FxHashMap<u32, usize>,
     iter: usize,
     root: Option<usize>,
+    name_map: FxHashMap<String, usize>,
 }
 impl Tree {
     fn new() -> Self {
@@ -66,6 +67,7 @@ impl Tree {
             map: FxHashMap::default(),
             iter: 0,
             root: None,
+            name_map: FxHashMap::default(),
         }
     }
     fn add_rel(&mut self, id: u32, par: u32, rank: String) -> Result<(), Box<dyn Error>> {
@@ -110,14 +112,17 @@ impl Tree {
         } else {
             return Err(format!("Node {} does not exist", id).into());
         };
-        self.nodes[id].add_name(name)?;
+        self.nodes[id].add_name(name.clone())?;
+        if let Some(x) = self.name_map.insert(name.to_lowercase(), id) {
+            // return Err(format!("Name {} is already assigned to node {}", name, x).into());
+        }
         Ok(())
     }
 }
 
 use std::io::{BufRead, BufReader};
 use std::fs::File;
-fn dump(path: String) -> Result<Vec<String>, Box<dyn Error>> {
+pub fn dump(path: String) -> Result<Vec<String>, Box<dyn Error>> {
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
 
@@ -176,6 +181,21 @@ pub fn report(tree: &Tree, id: u32) {
     }
     let mut id = *xid.unwrap();
 
+    println!("--- Node info ---");
+    let node = &tree.nodes[id];
+    println!("ID    : {}", node.id);
+    println!("Name  : {}", node.cargo.name.as_ref().unwrap());
+    println!("Level : {}", node.cargo.level.as_ref().unwrap());
+    println!();
+
+    println!("--- Children ---");
+    for &ch in &node.children {
+        let ch = &tree.nodes[ch];
+        println!("{:10} {:16} {}", ch.id, ch.cargo.level.as_ref().unwrap(), ch.cargo.name.as_ref().unwrap());
+    }
+    println!();
+
+    println!("--- Ancestors ---");
     let mut st = Vec::new();
     loop {
         st.push(id);
@@ -186,6 +206,7 @@ pub fn report(tree: &Tree, id: u32) {
     }
     while let Some(id) = st.pop() {
         let node = &tree.nodes[id];
-        println!("{} {} {}", node.id, node.cargo.level.as_ref().unwrap(), node.cargo.name.as_ref().unwrap());
+        println!("{:10} {:16} {}", node.id, node.cargo.level.as_ref().unwrap(), node.cargo.name.as_ref().unwrap());
     }
+    println!();
 }
