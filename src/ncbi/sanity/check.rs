@@ -25,6 +25,7 @@ fn dfs(adj: &Vec<Vec<usize>>, vis: &mut Vec<bool>, id: usize) -> Result<(), Box<
 }
 
 pub fn check(node_path: String) -> Result<(), Box<dyn Error>> {
+    println!("Checking tree...");
     let node_file = File::open(node_path)?;
     let mut reader = BufReader::new(node_file);
 
@@ -37,6 +38,8 @@ pub fn check(node_path: String) -> Result<(), Box<dyn Error>> {
 
     let rel = extract_rel(dump)?;
     let imax = *rel.iter().map(|(id, _)| id).max().unwrap();
+
+    let mut ex = vec![false; imax + 1];
     let mut adj = vec![Vec::new(); imax + 1];
     for (id, par) in rel {
         if id == par {
@@ -47,10 +50,17 @@ pub fn check(node_path: String) -> Result<(), Box<dyn Error>> {
             }
         }
         adj[par].push(id);
+        ex[id] = true;
+        ex[par] = true;
     }
 
     let mut vis = vec![false; imax + 1];
     dfs(&adj, &mut vis, 1)?;
+    for i in 1..=imax {
+        if !vis[i] && ex[i] {
+            println!("Node {} is unreachable", i);
+        }
+    }
 
     Ok(())
 }

@@ -176,11 +176,11 @@ pub fn add_name(tree: &mut Tree, name_path: String) -> Result<(), Box<dyn Error>
     Ok(())
 }
 
-pub fn report(tree: &Tree, id: u32) {
+pub fn report(tree: &Tree, id: u32) -> bool {
     let xid = tree.map.get(&id);
     if let None = xid {
         println!("taxID {} does not exist", id);
-        return;
+        return false;
     }
     let mut id = *xid.unwrap();
 
@@ -192,9 +192,12 @@ pub fn report(tree: &Tree, id: u32) {
     println!();
 
     println!("--- Children ---");
-    for &ch in &node.children {
+    for &ch in node.children.iter().take(10) {
         let ch = &tree.nodes[ch];
         println!("{:10} {:16} {}", ch.id, ch.cargo.level.as_ref().unwrap(), ch.cargo.name.as_ref().unwrap());
+    }
+    if node.children.len() > 10 {
+        println!("... {} more entries", node.children.len() - 10);
     }
     println!();
 
@@ -212,4 +215,5 @@ pub fn report(tree: &Tree, id: u32) {
         println!("{:10} {:16} {}", node.id, node.cargo.level.as_ref().unwrap(), node.cargo.name.as_ref().unwrap());
     }
     println!();
+    true
 }

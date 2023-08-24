@@ -1,4 +1,5 @@
 mod ncbi;
+use ncbi::sanity;
 use ncbi::entry_mapper;
 use ncbi::entry_mapper::Entries;
 use ncbi::taxonomy_tree;
@@ -20,6 +21,8 @@ fn update_dfs(ex: &mut [bool], tree: &Tree, entries: &Entries, xid: u32) {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    sanity::check::check(args[1].clone()).unwrap();
+
     let node_path = args[1].clone();
     let name_path = args[2].clone();
     let mut tree = taxonomy_tree::build(node_path).unwrap();
@@ -40,7 +43,7 @@ fn main() {
         });
         if x == 0 { break; }
         if x == u32::MAX { continue; }
-        taxonomy_tree::report(&tree, x);
+        if !taxonomy_tree::report(&tree, x) { continue; }
 
         let mut ex = vec![false; entries.clu_size()];
         update_dfs(&mut ex, &tree, &entries, x);
