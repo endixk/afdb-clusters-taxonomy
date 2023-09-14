@@ -1,11 +1,11 @@
 mod ncbi;
+use ncbi::init;
 use ncbi::sanity;
 use ncbi::entry_mapper;
 use ncbi::entry_mapper::Entries;
 use ncbi::taxonomy_tree;
 use ncbi::taxonomy_tree::Tree;
 
-use std::env;
 use std::io::{BufRead, BufReader, Write};
 
 fn update_dfs(ex: &mut [bool], tree: &Tree, entries: &Entries, xid: u32) {
@@ -19,17 +19,15 @@ fn update_dfs(ex: &mut [bool], tree: &Tree, entries: &Entries, xid: u32) {
     }
 }
 
+const NODE_PATH: &'static str = "lib/nodes.dmp";
+const NAME_PATH: &'static str = "lib/names.dmp";
+const MAP_PATH: &'static str = "lib/cluster.tsv";
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    sanity::check::check(args[1].clone()).unwrap();
-
-    let node_path = args[1].clone();
-    let name_path = args[2].clone();
-    let mut tree = taxonomy_tree::build(node_path).unwrap();
-    taxonomy_tree::add_name(&mut tree, name_path).unwrap();
-
-    let map_path = args[3].clone();
-    let entries = entry_mapper::map(map_path).unwrap();
+    init::prepare().ok();
+    sanity::check::check(NODE_PATH.to_string()).ok();
+    let mut tree = taxonomy_tree::build(NODE_PATH.to_string()).unwrap();
+    taxonomy_tree::add_name(&mut tree, NAME_PATH.to_string()).unwrap();
+    let entries = entry_mapper::map(MAP_PATH.to_string()).unwrap();
 
     let mut si = BufReader::new(std::io::stdin().lock());
     loop {
