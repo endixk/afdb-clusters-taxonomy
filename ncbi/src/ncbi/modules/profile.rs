@@ -20,7 +20,7 @@ fn read(input_path: String) -> Result<Vec<u32>, Box<dyn Error>> {
     Ok(ret)
 }
 
-// compile a boolean vector into utf-8 string by converting 8 bits into a byte
+// compile a boolean vector into valid characters, 7 bits per character
 fn compile(ex: Vec<bool>) -> String {
     let mut ret = String::new();
     let mut cur = 0;
@@ -28,14 +28,14 @@ fn compile(ex: Vec<bool>) -> String {
     for &x in &ex {
         cur |= (x as u8) << cnt;
         cnt += 1;
-        if cnt == 8 {
-            ret.push(cur as char);
+        if cnt == 7 {
+            ret.push((cur + 33) as char);
             cur = 0;
             cnt = 0;
         }
     }
-    if cnt != 0 {
-        ret.push(cur as char);
+    if cnt > 0 {
+        ret.push((cur + 33) as char);
     }
     ret
 }
@@ -59,7 +59,7 @@ pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: Stri
             continue;
         };
 
-        print!("\rProcessing {}/{}: {}                      ", i + 1, n, name);
+        print!("\rProcessing {}/{}: {:50}...", i + 1, n, name);
         let mut ex = vec![false; entries.clu_size()];
         update_dfs(&mut ex, &tree, &entries, id);
         let ex = compile(ex);
