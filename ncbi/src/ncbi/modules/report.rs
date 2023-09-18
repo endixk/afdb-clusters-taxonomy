@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader, Write};
 use crate::ncbi::entry_mapper::Entries;
 use crate::ncbi::taxonomy_tree::{self, Tree};
 
-fn update_dfs(ex: &mut [bool], tree: &Tree, entries: &Entries, xid: u32) {
+pub fn update_dfs(ex: &mut [bool], tree: &Tree, entries: &Entries, xid: u32) {
     if let Some(v) = entries.get_clu(xid) {
         for &clu in &v {
             ex[clu] = true;

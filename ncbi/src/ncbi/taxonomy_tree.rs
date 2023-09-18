@@ -121,6 +121,14 @@ impl Tree {
         let id = *self.map.get(&id).unwrap();
         self.nodes[id].children.iter().map(|&x| self.nodes[x].id).collect()
     }
+
+    pub fn is_valid(&self, id: u32) -> bool {
+        self.map.contains_key(&id)
+    }
+    pub fn get_name(&self, id: u32) -> Option<String> {
+        let id = *self.map.get(&id)?;
+        Some(self.nodes[id].cargo.name.as_ref()?.clone())
+    }
 }
 
 use std::io::{BufRead, BufReader};
