@@ -6,7 +6,7 @@ use crate::ncbi::entry_mapper::Entries;
 use crate::ncbi::taxonomy_tree::Tree;
 use crate::ncbi::modules::report::update_dfs;
 
-fn read(input_path: String) -> Result<Vec<u32>, Box<dyn Error>> {
+pub fn read(input_path: String) -> Result<Vec<u32>, Box<dyn Error>> {
     let file = File::open(input_path)?;
     let mut reader = BufReader::new(file);
 
