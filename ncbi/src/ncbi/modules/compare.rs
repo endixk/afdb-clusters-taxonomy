@@ -25,6 +25,8 @@ fn xor_union_similarity(ex1: &[bool], ex2: &[bool], n: usize) -> Result<f64, Box
     if c == 0 { c = 1; }
     Ok(x as f64 * 100.0 / c as f64)
 }
+
+const THRES: usize = 300;
 pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: String) -> Result<(), Box<dyn Error>> {
     let ids = read(input_path)?;
     let names = ids.iter().map(|&id| tree.get_name(id).unwrap()).collect::<Vec<_>>();
@@ -33,11 +35,22 @@ pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: Stri
 
     let mut exv = Vec::new();
     for _ in 0..n { exv.push(vec![false; entries.clu_size()]); }
+
     ids.iter().enumerate().for_each(|(i, &id)| {
         print!("\rGenerating existence profiles... [{}/{}]", i + 1, n);
         update_dfs(&mut exv[i], &tree, &entries, id)
     });
     println!();
+    let counts = exv.iter().map(|x| x.iter().filter(|&&y| y).count()).collect::<Vec<_>>();
+
+    let ci = counts.iter().enumerate().filter(|(_, &x)| x >= THRES).map(|(i, _)| i).collect::<Vec<_>>();
+    let ids = ids.iter().enumerate().filter(|(i, _)| ci.contains(i)).map(|(_, &x)| x).collect::<Vec<_>>();
+    let names = names.into_iter().enumerate().filter(|(i, _)| ci.contains(i)).map(|(_, x)| x).collect::<Vec<_>>();
+    let counts = counts.iter().enumerate().filter(|(i, _)| ci.contains(i)).map(|(_, &x)| x).collect::<Vec<_>>();
+    let exv = exv.into_iter().enumerate().filter(|(i, _)| ci.contains(i)).map(|(_, x)| x).collect::<Vec<_>>();
+
+    println!("{} entries rejected due to low count", n - ids.len());
+    let n = ids.len();
 
     for i in 0..n {
         print!("\rCalculating similarities... [{}/{}]", i + 1, n);
@@ -57,7 +70,7 @@ pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: Stri
     let mut writer = BufWriter::new(file);
     for i in 0..n {
         for j in 0..n {
-            writeln!(writer, "{}\t{}\t{}\t{}\t{}", ids[i], ids[j], names[i], names[j], dmat[i][j])?;
+            writeln!(writer, "{}\t{}\t{} {}\t{} {}\t{}", ids[i], ids[j], names[i], counts[i], names[j], counts[j], dmat[i][j])?;
         }
     }
 
