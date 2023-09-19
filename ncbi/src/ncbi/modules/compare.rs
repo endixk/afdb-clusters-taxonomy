@@ -22,10 +22,15 @@ pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: Stri
 
     let mut exv = Vec::new();
     for _ in 0..n { exv.push(vec![false; entries.clu_size()]); }
-    ids.iter().enumerate().for_each(|(i, &id)| update_dfs(&mut exv[i], &tree, &entries, id));
+    ids.iter().enumerate().for_each(|(i, &id)| {
+        print!("\rGenerating existence profiles... [{}/{}]     ", i + 1, n);
+        update_dfs(&mut exv[i], &tree, &entries, id)
+    });
+    println!();
 
     for i in 0..n {
         for j in i..n {
+            print!("\rCalculating similarities... [{}/{}]     ", i*n + j + 1, n*n);
             if i == j { dmat[i][j] = 100.0; }
             else {
                 dmat[i][j] = xor_pct_similarity(&exv[i], &exv[j], entries.clu_size())?;
@@ -33,7 +38,9 @@ pub fn run(tree: &Tree, entries: &Entries, input_path: String, output_path: Stri
             }
         }
     }
+    println!();
 
+    println!("Writing output...");
     let file = File::create(output_path)?;
     let mut writer = BufWriter::new(file);
     for i in 0..n {

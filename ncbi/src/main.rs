@@ -11,7 +11,7 @@ const MAP_PATH: &'static str = "lib/cluster.tsv";
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Module to run [help, report, profile]
+    /// Module to run [help, report, profile, compare]
     module: String,
 
     /// Input file
